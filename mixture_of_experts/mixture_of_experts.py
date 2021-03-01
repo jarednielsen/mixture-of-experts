@@ -127,6 +127,7 @@ class Top2Gating(nn.Module):
 
         raw_gates = torch.einsum('...bnd,...de->...bne', x, self.w_gating)
         raw_gates = raw_gates.softmax(dim=-1)
+        # import pdb; pdb.set_trace()
 
         # FIND TOP 2 EXPERTS PER POSITON
         # Find the top expert for each position. shape=[batch, group]
@@ -208,7 +209,7 @@ class Top2Gating(nn.Module):
 
         position_in_expert_2 = position_in_expert_2.sum(dim=-1)
         gate_2 *= mask_2_flat
-        
+
         # [batch, group, experts, expert_capacity]
         combine_tensor = (
             gate_1[..., None, None]
@@ -220,6 +221,8 @@ class Top2Gating(nn.Module):
             * F.one_hot(index_2, num_gates)[..., None]
             * safe_one_hot(position_in_expert_2.long(), expert_capacity)[..., None, :]
         )
+
+        # import pdb; pdb.set_trace()
 
         dispatch_tensor = combine_tensor.bool().to(combine_tensor)
         return dispatch_tensor, combine_tensor, loss
